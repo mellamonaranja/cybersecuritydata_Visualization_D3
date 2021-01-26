@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script type="text/javascript" src="data.json"></script>
+    <style>
+        body {
+          font: 20px sans-serif;
+        }
+    
+        .group-tick line {
+          stroke: #000;
+        }
+    
+        .ribbons {
+          fill-opacity: 0.67;
+        }
+      </style>
+      <script src="https://d3js.org/d3.v6.min.js"></script>
+
+
+
+    <script>
+        function onLOAD(){
+            // var mydata=JSON.parse(data);
+        var matrixData={
+            "TW_ID":[],
+            "GEAR_CODE": [],
+            "DRULE_ATT_TYPE_CODE1": [],
+            "TW_ATT_IP": [],
+            "TW_ATT_PORT": [],
+            "TW_PROTO_NM": [],
+            "GEAR_TYPE": []
+        }
+        console.log(data);
+        
+        
+        for(let item of data){
+            matrixData.TW_ID.push(item._source.TW_ID);
+            matrixData.GEAR_CODE.push(item._source.GEAR_CODE);
+            matrixData.DRULE_ATT_TYPE_CODE1.push(item._source.DRULE_ATT_TYPE_CODE1);
+            matrixData.TW_ATT_IP.push(item._source.TW_ATT_IP);
+            matrixData.TW_ATT_PORT.push(item._source.TW_ATT_PORT);
+            matrixData.TW_PROTO_NM.push(item._source.TW_PROTO_NM);
+            matrixData.GEAR_TYPE.push(item._source.GEAR_TYPE);
+        }
+
+        console.log(matrixData)
+
+        matrix= Object.values(matrixData);
+        matrixKeys = Object.keys(matrixData);
+
+      const width = 1000;
+      const height = width;
+      const outerRadius = Math.min(width, height) * 0.5 - 60
+      const innerRadius = outerRadius - 10
+      const names = matrixData.names === undefined ? d3.range(matrixData.length) : matrixData.names
+      
+      const colors = matrixData.colors === undefined ? d3.quantize(d3.interpolateRainbow, names.length) : matrixData.colors
+      console.log(data);
+      console.log(data.names, data.colors);
+      const color = d3.scaleOrdinal(names, colors)
+
+      const ribbon = d3.ribbon()
+        .radius(innerRadius - 1)
+        .padAngle(1 / innerRadius)
+      const arc = d3.arc()
+        .innerRadius(innerRadius)
+        .outerRadius(outerRadius)
+
+      const formatValue = d3.format(".1~%")
+      //const tickStep = d3.tickStep(0, d3.sum(matrixData.flat()), 100)
+
+
+      function ticks({ startAngle, endAngle, value }) {
+        const k = (endAngle - startAngle) / value;
+        return d3.range(0, value, tickStep).map(value => {
+          return { value, angle: value * k + startAngle };
+        });
+      }
+
+
+      const chord = d3.chord()
+        .padAngle(10 / innerRadius)
+        .sortSubgroups(d3.descending)
+        .sortChords(d3.descending)
+
+      const svg = d3.select("svg").attr("viewBox", [-width / 2, -height / 2, width, height]);
+
+      const chords = chord(matrixData);
+
+      const group = svg.append("g")
+        .attr("font-size", 10)
+        .attr("font-family", "sans-serif")
+        .selectAll("g")
+        .matrixData(chords.groups)
+        .join("g");
+
+      group.append("path")
+        .attr("fill", d => color(names[d.index]))
+        .attr("d", arc);
+
+      group.append("title")
+        .text(d => `${names[d.index]} ${formatValue(d.value)}`);
+
+      const groupTick = group.append("g")
+        .selectAll("g")
+        .matrixData(ticks)
+        .join("g")
+        .attr("transform", d => `rotate(${d.angle * 180 / Math.PI - 90}) translate(${outerRadius},0)`);
+
+      groupTick.append("line")
+        .attr("stroke", "currentColor")
+        .attr("x2", 6);
+
+      groupTick.append("text")
+        .attr("x", 8)
+        .attr("dy", "0.35em")
+        .attr("transform", d => d.angle > Math.PI ? "rotate(180) translate(-16)" : null)
+        .attr("text-anchor", d => d.angle > Math.PI ? "end" : null)
+        .text(d => formatValue(d.value));
+
+      group.select("text")
+        .attr("font-weight", "bold")
+        .text(function(d) {
+          return this.getAttribute("text-anchor") === "end"
+            ? `↑ ${names[d.index]}`
+            : `${names[d.index]} ↓`;
+        });
+
+      svg.append("g")
+        .attr("fill-opacity", 0.8)
+        .selectAll("path")
+        .matrixData(chords)
+        .join("path")
+        .style("mix-blend-mode", "multiply")
+        .attr("fill", d => color(names[d.source.index]))
+        .attr("d", ribbon)
+        .append("title")
+        .text((d) => `${formatValue(d.source.value)} ${names[d.target.index]} → ${names[d.source.index]}${d.source.index === d.target.index ? "" : `\n${formatValue(d.target.value)} ${names[d.source.index]} → ${names[d.target.index]}`}`);
+
+
+        }
+        
+
+    
+
+    </script>
+</head>
+<body onload="onLOAD()">
+    <svg width="1000" height="1000"></svg>
+
+</body>
+</html>
+
+
+

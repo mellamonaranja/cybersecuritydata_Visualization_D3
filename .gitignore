@@ -1,14 +1,4 @@
-/.DS_Store
-/.ipynb_checkpoints
-/.vscode
-/ZoomableCirclePacking
-/__pycache__
-/chord
-/keris
-/keris.json
-/keris1.json
-/keris_extract.json
-/keriskeris copy.ipynb
-/keriskeris.ipynb
-/output.js
-/practice
+.DS_Store
+.ipynb_checkpoints
+.vscode
+__pycache__

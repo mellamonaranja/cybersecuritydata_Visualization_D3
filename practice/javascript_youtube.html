@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        var a={'id':1};
+        var b=a;
+        b.id=2;
+        console.log(a.id); //returns 2
+        //because if object b change its property, it affects to object a
+        //this called reference
+
+        
+        function greet(name){
+            return 'hello ${name}';
+        }
+        greet('aaa');
+        
+        fullName = `${firstName} ${lastName}`
+        lastName = "Lovelace"
+        firstName = "Ada"
+        console.log(fullName);
+    </script> 
+</body> 
+</html> 
